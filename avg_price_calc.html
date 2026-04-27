@@ -149,6 +149,12 @@
       background: rgba(255,215,0,.06);
       font-size: 1.25rem;
     }
+    input[type=number].realtime {
+      border-color: rgba(74,222,128,.6);
+      background: rgba(74,222,128,.08);
+      color: #4ade80;
+      font-weight: bold;
+    }
 
     .drive-tag {
       font-size: .68rem;
@@ -465,16 +471,75 @@
       }
     }
 
-    // 下拉選單切換時，自動填入 B、C、J
-    function onStockSelect() {
+    // 下拉選單切換時，自動填入 B、C、J，並嘗試抓即時股價
+    async function onStockSelect() {
       const idx = document.getElementById('stock-select').value;
       if (idx === '') return;
       const s = stockList[parseInt(idx)];
+
+      // 先填 Excel 值作為預設
       fillField('input-b2', s.b, 'tag-b2');
       fillField('input-c2', s.c, 'tag-c2');
       fillField('input-j2', s.j, 'tag-j2');
       document.getElementById('input-new').value = '';
       document.getElementById('result-card').style.display = 'none';
+
+      // 嘗試抓即時股價
+      const code = parseStockCode(s.name);
+      if (code) {
+        setPriceTag('載入即時價格…', '#aaa');
+        const price = await fetchRealTimePrice(code);
+        if (price) {
+          const el = document.getElementById('input-j2');
+          el.value = price;
+          el.classList.remove('from-drive');
+          el.classList.add('realtime');
+          setPriceTag(`即時 $${price}`, '#4ade80');
+        } else {
+          setPriceTag('無即時資料，使用試算表值', '#888');
+        }
+      } else {
+        setPriceTag('無法辨識代碼，使用試算表值', '#888');
+      }
+    }
+
+    // 把 A 欄的值轉成股票代碼（台股格式）
+    function parseStockCode(raw) {
+      const s = String(raw).trim();
+      // 純數字（如 50.0 → 0050）
+      if (/^\d+(\.\d+)?$/.test(s)) {
+        return String(Math.round(parseFloat(s))).padStart(4, '0');
+      }
+      // 已是代碼格式（如 00631L、00878）
+      if (/^\d/.test(s)) return s;
+      // 中文名稱或英文名稱，無法轉換
+      return null;
+    }
+
+    // 抓即時股價（Yahoo Finance，台股 .TW）
+    async function fetchRealTimePrice(code) {
+      const tickers = [`${code}.TW`, `${code}.TWO`];
+      for (const ticker of tickers) {
+        try {
+          const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1m&range=1d`;
+          const res  = await fetch(url);
+          if (!res.ok) continue;
+          const data = await res.json();
+          const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+          if (price) return price;
+        } catch { /* 繼續試下一個 */ }
+      }
+      return null;
+    }
+
+    function setPriceTag(msg, color) {
+      const tag = document.getElementById('tag-j2');
+      tag.style.display = 'inline';
+      tag.textContent   = msg;
+      tag.style.color   = color;
+      tag.style.background = 'transparent';
+      tag.style.border  = 'none';
+      tag.style.fontSize = '.68rem';
     }
 
     function fillField(id, val, tagId) {
