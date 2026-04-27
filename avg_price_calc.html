@@ -41,6 +41,15 @@
       vertical-align: middle;
     }
 
+    /* ── 2欄網格 ── */
+    .fields-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 4px;
+    }
+    .fields-grid .field { margin-bottom: 0; }
+
     /* ── 卡片 ── */
     .card {
       background: rgba(255,255,255,.06);
@@ -283,43 +292,48 @@
       </select>
     </div>
 
-    <!-- 欄位1：買進價 -->
-    <div class="field">
-      <div class="field-header">
-        <span class="field-label">② 買進價（均價）<span class="drive-tag" id="tag-b2" style="display:none">Drive B 欄</span></span>
-        <span class="field-hint">元 / 股</span>
+    <!-- 2欄網格：買進價、持有股數、最新收盤價、預計買進股數 -->
+    <div class="fields-grid">
+
+      <!-- 欄位1：買進價 -->
+      <div class="field">
+        <div class="field-header">
+          <span class="field-label">② 買進價<span class="drive-tag" id="tag-b2" style="display:none">B欄</span></span>
+          <span class="field-hint">元/股</span>
+        </div>
+        <input type="number" id="input-b2" placeholder="例：46.83" step="0.01" min="0">
       </div>
-      <input type="number" id="input-b2" placeholder="例：46.83" step="0.01" min="0">
+
+      <!-- 欄位2：持有股數 -->
+      <div class="field">
+        <div class="field-header">
+          <span class="field-label">③ 持有股數<span class="drive-tag" id="tag-c2" style="display:none">C欄</span></span>
+          <span class="field-hint">股</span>
+        </div>
+        <input type="number" id="input-c2" placeholder="例：3000" step="1" min="0">
+      </div>
+
+      <!-- 欄位3：最新收盤價 -->
+      <div class="field">
+        <div class="field-header">
+          <span class="field-label">④ 最新收盤價<span class="drive-tag" id="tag-j2" style="display:none">J欄</span></span>
+          <span class="field-hint">元/股</span>
+        </div>
+        <input type="number" id="input-j2" placeholder="例：89.95" step="0.01" min="0">
+      </div>
+
+      <!-- 欄位4：預計買進股數 -->
+      <div class="field">
+        <div class="field-header">
+          <span class="field-label" style="color:#ffd700">⑤ 預計買進股數</span>
+          <span class="field-hint">股</span>
+        </div>
+        <input type="number" id="input-new" placeholder="想加碼幾股" step="1" min="0" class="new-input">
+      </div>
+
     </div>
 
-    <!-- 欄位2：持有股數 -->
-    <div class="field">
-      <div class="field-header">
-        <span class="field-label">③ 持有股數<span class="drive-tag" id="tag-c2" style="display:none">Drive C 欄</span></span>
-        <span class="field-hint">股</span>
-      </div>
-      <input type="number" id="input-c2" placeholder="例：3000" step="1" min="0">
-    </div>
-
-    <!-- 欄位3：最新收盤價 -->
-    <div class="field">
-      <div class="field-header">
-        <span class="field-label">④ 最新收盤價<span class="drive-tag" id="tag-j2" style="display:none">Drive J 欄</span></span>
-        <span class="field-hint">元 / 股</span>
-      </div>
-      <input type="number" id="input-j2" placeholder="例：89.95" step="0.01" min="0">
-    </div>
-
-    <hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:4px 0 20px">
-
-    <!-- 欄位5：預計買進股數 -->
-    <div class="field">
-      <div class="field-header">
-        <span class="field-label" style="color:#ffd700">⑤ 預計買進股數</span>
-        <span class="field-hint">股</span>
-      </div>
-      <input type="number" id="input-new" placeholder="輸入想加碼的股數" step="1" min="0" class="new-input">
-    </div>
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:18px 0 16px">
 
     <button class="btn-calc" onclick="calculate()">計 算 攤 平 均 價</button>
   </div>
