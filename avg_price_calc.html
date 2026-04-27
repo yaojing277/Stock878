@@ -348,7 +348,7 @@
     async function loadFromDrive() {
       setStatus('搜尋「股價試算」中…');
       try {
-        const q   = `title='${FILE_NAME}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`;
+        const q   = `name='${FILE_NAME}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`;
         const res = await gFetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&pageSize=1&fields=files(id)`);
         const { files } = await res.json();
         if (!files?.length) return setStatus('找不到「股價試算」檔案', 'err');
