@@ -516,19 +516,39 @@
       return null;
     }
 
-    // 抓即時股價（Yahoo Finance，台股 .TW）
+    // 抓即時股價：TWSE 即時 API（主）→ Yahoo Finance（備用），均透過 CORS proxy
     async function fetchRealTimePrice(code) {
-      const tickers = [`${code}.TW`, `${code}.TWO`];
-      for (const ticker of tickers) {
+      // 主：TWSE/TPEx 即時成交價（via allorigins proxy）
+      for (const type of ['tse', 'otc']) {
         try {
-          const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1m&range=1d`;
-          const res  = await fetch(url);
+          const twseUrl = `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=${type}_${code}.tw&_=${Date.now()}`;
+          const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(twseUrl)}`);
+          if (!res.ok) continue;
+          const wrapper = await res.json();
+          const data = JSON.parse(wrapper.contents);
+          const msg = data?.msgArray?.[0];
+          if (msg) {
+            // z=即時價，收盤後為 '-'，改用 y=昨收
+            const z = parseFloat(msg.z);
+            const y = parseFloat(msg.y);
+            const price = z > 0 ? z : y > 0 ? y : 0;
+            if (price > 0) return price;
+          }
+        } catch { /* 繼續下一個 */ }
+      }
+
+      // 備用：Yahoo Finance via corsproxy.io
+      for (const suffix of ['.TW', '.TWO']) {
+        try {
+          const yahooUrl = `https://query2.finance.yahoo.com/v8/finance/chart/${code}${suffix}?interval=1d&range=5d`;
+          const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`);
           if (!res.ok) continue;
           const data = await res.json();
           const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
-          if (price) return price;
-        } catch { /* 繼續試下一個 */ }
+          if (price > 0) return price;
+        } catch { /* 繼續下一個 */ }
       }
+
       return null;
     }
 
